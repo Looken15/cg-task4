@@ -8,7 +8,7 @@ namespace task4
 {
     class Matrix
     {
-        public int n1,n2;
+        public int n1, n2;
         double[,] m;
 
         public Matrix(int _n)
@@ -31,16 +31,22 @@ namespace task4
             set { m[x, y] = value; }
         }
 
-        public Matrix Mult(Matrix m2)
+        public static Matrix operator *(Matrix m1, Matrix m2)
         {
-            var res = new Matrix(n1, m2.n2);
-            for (int i = 0; i < n1; i++)
-            {
+            var res = new Matrix(m1.n1, m2.n2);
 
-                for (int j = 0; j < m2.n2; j++)
+            for (int i = 0; i < m1.n1; ++i)
+            {
+                for (int j = 0; j < m2.n2; ++j)
                 {
-                   
+                    for (int k = 0; k < m2.n1; ++k)
+                    {
+                        res.m[i, j] += m1.m[i, k] * m2.m[k, j];
+                    }
                 }
             }
+
+            return res;
+        }
     }
 }

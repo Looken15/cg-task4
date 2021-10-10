@@ -29,6 +29,12 @@ namespace task4
 
         double angle;
 
+        double dx_shift;
+        double dy_shift;
+
+        double kx_scale;
+        double ky_scale;
+
         Color point_color = Color.Blue;
 
         public clear_button()
@@ -198,6 +204,11 @@ namespace task4
 
             g.FillEllipse(new SolidBrush(Color.Red), origin.X, origin.Y, 10, 10);
 
+            origin.X = pictureBox1.Width / 2;
+            origin.Y = pictureBox1.Height / 2;
+
+            RedrawScene();
+
             pictureBox1.Refresh();
 
         }
@@ -210,32 +221,149 @@ namespace task4
             point_button.Enabled = true;
         }
 
-        private void rotate_button_Click(object sender, EventArgs e)
+        private void afinne(string name)
         {
             Matrix m = new Matrix(3);
-            m[0, 0] = Math.Cos(angle);
-            m[0, 1] = Math.Sin(angle);
+
+            if (name == "rotate")
+            {
+                var rad_angle = angle * Math.PI / 180;
+                m[0, 0] = Math.Cos(rad_angle);
+                m[0, 1] = Math.Sin(rad_angle);
+                m[0, 2] = 0;
+                m[1, 0] = -Math.Sin(rad_angle);
+                m[1, 1] = Math.Cos(rad_angle);
+                m[1, 2] = 0;
+                m[2, 0] = 0;
+                m[2, 1] = 0;
+                m[2, 2] = 1;
+            }
+            else if (name == "shift")
+            {
+                m[0, 0] = 1;
+                m[0, 1] = 0;
+                m[0, 2] = 0;
+                m[1, 0] = 0;
+                m[1, 1] = 1;
+                m[1, 2] = 0;
+                m[2, 0] = -dx_shift;
+                m[2, 1] = -dy_shift;
+                m[2, 2] = 1;
+            }
+            else if (name == "scale")
+            {
+                m[0, 0] = 1 / kx_scale;
+                m[0, 1] = 0;
+                m[0, 2] = 0;
+                m[1, 0] = 0;
+                m[1, 1] = 1 / ky_scale;
+                m[1, 2] = 0;
+                m[2, 0] = 0;
+                m[2, 1] = 0;
+                m[2, 2] = 1;
+            }
+
+            if (prim_polygon.done)
+            {
+                var prim = prim_polygon.start;
+                var new_prim_polygon = new Polygon();
+                for (int i = 0; i < prim_polygon.size; ++i)
+                {
+                    Matrix p = new Matrix(1, 3);
+                    p[0, 0] = prim.x - origin.X;
+                    p[0, 1] = prim.y - origin.Y;
+                    p[0, 2] = 1;
+
+                    Matrix res = p * m;
+                    new_prim_polygon.addPoint(new PointF((int)res[0, 0] + origin.X, (int)res[0, 1] + origin.Y));
+
+                    prim = prim.next;
+                }
+                new_prim_polygon.done = true;
+
+
+                prim_polygon = new_prim_polygon;
+                RedrawScene();
+            }
+        }
+
+        private void rotate_button_Click(object sender, EventArgs e)
+        {
+            afinne("rotate");
+        }
+
+        private void shift_button_Click(object sender, EventArgs e)
+        {
+            afinne("shift");
+        }
+
+        private void scale_button_Click(object sender, EventArgs e)
+        {
+            afinne("scale");
+        }
+
+        private void edge_rotate_button_Click(object sender, EventArgs e)
+        {
+            Matrix m = new Matrix(3);
+
+            var rad_angle = 90 * Math.PI / 180;
+            m[0, 0] = Math.Cos(rad_angle);
+            m[0, 1] = Math.Sin(rad_angle);
             m[0, 2] = 0;
-            m[1, 0] = -Math.Sin(angle);
-            m[1, 1] = Math.Cos(angle);
+            m[1, 0] = -Math.Sin(rad_angle);
+            m[1, 1] = Math.Cos(rad_angle);
             m[1, 2] = 0;
             m[2, 0] = 0;
             m[2, 1] = 0;
             m[2, 2] = 1;
-            if (prim_polygon.done)
-            {
-                var p = prim_polygon.start;
-                for (int i = 0; i < prim_polygon.size; ++i)
-                {
 
-                }
-            }
+            var xc = (prim_edge.p1.X + prim_edge.p2.X) / 2;
+            var yc = (prim_edge.p1.Y + prim_edge.p2.Y) / 2;
+
+            Matrix a = new Matrix(1, 3);
+            a[0, 0] = prim_edge.p1.X - xc;
+            a[0, 1] = prim_edge.p1.Y - yc;
+            a[0, 2] = 1;
+
+            Matrix b = new Matrix(1, 3);
+            b[0, 0] = prim_edge.p2.X - xc;
+            b[0, 1] = prim_edge.p2.Y - yc;
+            b[0, 2] = 1;
+
+            var res_a = a * m;
+            var res_b = b * m;
+
+            prim_edge = new Edge(new Point((int)res_a[0, 0] + xc, (int)res_a[0, 1] + yc), new Point((int)res_b[0, 0] + xc, (int)res_b[0, 1] + yc));
+
+            RedrawScene();
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
+        private void rotate_textbox_TextChanged(object sender, EventArgs e)
         {
-            double.TryParse(textBox1.Text, out angle);
+            double.TryParse(rotate_text_box.Text, out angle);
         }
+
+        private void dx_shift_textbox_TextChanged(object sender, EventArgs e)
+        {
+            double.TryParse(dx_shift_textbox.Text, out dx_shift);
+        }
+
+        private void dy_shift_textbox_TextChanged(object sender, EventArgs e)
+        {
+            double.TryParse(dy_shift_textbox.Text, out dy_shift);
+        }
+
+        private void kx_scale_textbox_TextChanged(object sender, EventArgs e)
+        {
+            double.TryParse(kx_scale_textbox.Text, out kx_scale);
+        }
+
+        private void ky_scale_textbox_TextChanged(object sender, EventArgs e)
+        {
+            double.TryParse(ky_scale_textbox.Text, out ky_scale);
+        }
+
+
     }
 
     public class Edge
