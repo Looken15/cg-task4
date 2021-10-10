@@ -1,0 +1,10 @@
+C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\bin\Debug\task4.exe.config
+C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\bin\Debug\task4.exe
+C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\bin\Debug\task4.pdb
+C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\obj\Debug\task4.csprojAssemblyReference.cache
+C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\obj\Debug\task4.Properties.Resources.resources
+C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\obj\Debug\task4.csproj.GenerateResource.cache
+C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\obj\Debug\task4.csproj.CoreCompileInputs.cache
+C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\obj\Debug\task4.exe
+C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\obj\Debug\task4.pdb
+C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\obj\Debug\task4.clear_button.resources
