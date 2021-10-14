@@ -15,6 +15,7 @@ namespace task4
     {
         Bitmap bitmap;
         Graphics g;
+        Random r = new Random();
 
         Point prim_point;
         const int point_radius = 5;
@@ -96,12 +97,16 @@ namespace task4
             {
                 prim_point = me.Location;
                 if (prim_edge.p1.X > 0 && prim_edge.p2.X > 0)
-                    switch(point_position_to_edge(prim_point))
+                    switch (point_position_to_edge(prim_point, prim_edge))
                     {
                         case 0: ShowInfo("Point on edge."); break;
                         case -1: ShowInfo("Left to edge."); break;
                         case 1: ShowInfo("Right to edge."); break;
                     }
+                else
+                    ShowInfo();
+                if (prim_polygon.done)
+                    AddInfo($"Inside convex: {IsInConvexPolygon()}, Inside non convex: {IsInNonConvexPolygon()}");
                 RedrawScene();
             }
             else if (!edge_button.Enabled)
@@ -123,7 +128,7 @@ namespace task4
 
                     if (second_edge.p1.X != -1 && second_edge.p2.X != -1)
                     {
-                        var p = GetIntersect();
+                        var p = GetIntersect(prim_edge, second_edge);
                         if (p.X == -1)
                             ShowInfo("No intersection.");
                         else
@@ -151,7 +156,7 @@ namespace task4
 
                     if (prim_edge.p1.X != -1 && prim_edge.p2.X != -1)
                     {
-                        var p = GetIntersect();
+                        var p = GetIntersect(prim_edge,second_edge);
                         if (p.X == -1)
                             ShowInfo("No intersection.");
                         else
@@ -243,17 +248,100 @@ namespace task4
             info_textBox.Refresh();
         }
 
+        private void AddInfo(string s)
+        {
+            if (info_textBox.Text == "")
+                ShowInfo(s);
+            else
+                info_textBox.Text += "\r\n"+s;
+            info_textBox.Refresh();
+        }
+
         private bool LocatePoint(Point p)
         {
             return Math.Abs(p.X - prim_polygon.start.x) < locate_radius && Math.Abs(p.Y - prim_polygon.start.y) < locate_radius;
         }
 
-        //-1 - left, 0 - on edge, 1 - right
-        private int point_position_to_edge(Point p)
+        private bool IsInConvexPolygon()
         {
-            var up = prim_edge.p1; var down = prim_edge.p2;
-            if (down.Y < up.Y || (down.Y == up.Y && down.X > up.X))
-                (up, down) = (down, up);
+            var prev = prim_polygon.start;
+            var cur = prim_polygon.start.next;
+            for (int i = 1; i< prim_polygon.size;i++)
+            {
+                var e = new Edge(prev.ToPoint(), cur.ToPoint());
+                if (point_position_to_edge(prim_point, e, false) != 1)
+                    return false;
+                prev = cur;
+                cur = cur.next;
+            }
+            return true;
+        }
+
+        private bool IsInNonConvexPolygon()
+        {
+            var points = new HashSet<Point>();
+            var cur = prim_polygon.start.next;
+            while (cur != prim_polygon.start)
+            {
+                points.Add(cur.ToPoint());
+                cur = cur.next;
+            }
+            points.Add(cur.ToPoint());
+
+            var a = Sqrt(pictureBox1.Width* pictureBox1.Width + pictureBox1.Height* pictureBox1.Height);
+            while (true)
+            {
+                var angle = r.Next(1, 360);
+                var y = Sin(angle) * a;
+                var x = Cos(angle) * a;
+                var p1 = new Point(prim_point.X + (int)x, prim_point.Y + (int)y);
+                var e1 = new Edge(prim_point, p1);
+
+                //g.DrawLine(new Pen(Color.Black, 1f), prim_point, p1);
+                //pictureBox1.Refresh();
+
+                var prev = prim_polygon.start;
+                cur = prim_polygon.start.next;
+                bool need_cont = false;
+                int count = 0;
+                while (true)
+                {
+                    var e2 = new Edge(prev.ToPoint(), cur.ToPoint());
+                    var p = GetIntersect(e1, e2);
+                    if (p.X == -1)
+                    {
+                        prev = cur;
+                        cur = cur.next;
+                        if (prev == prim_polygon.start)
+                            break;
+                        continue;
+                    }
+                    if (points.Contains(p))
+                    {
+                        need_cont = true;
+                        break;
+                    }
+
+                    count++;
+                    prev = cur;
+                    cur = cur.next;
+                    if (prev == prim_polygon.start)
+                        break;
+                }
+                if (need_cont)
+                    continue;
+                return count % 2 != 0;
+            }
+            
+        }
+
+        //-1 - left, 0 - on edge, 1 - right
+        private int point_position_to_edge(Point p, Edge e, bool useDefaultDirection = true)
+        {
+            var up = e.p2; var down = e.p1;
+            if (useDefaultDirection)
+                if (down.Y < up.Y || (down.Y == up.Y && down.X > up.X))
+                    (up, down) = (down, up);
 
             double yp = down.Y - p.Y; double yup = down.Y - up.Y;
             double xp = p.X - down.X; double xup = up.X - down.X;
@@ -264,10 +352,21 @@ namespace task4
             return 0;
         }
 
-        // (-1,-1) if no intersection
-        private Point GetIntersect()
+        private bool HasIntersection()
         {
             (var p1, var p2, var p3, var p4) = (prim_edge.p1, prim_edge.p2, second_edge.p1, second_edge.p2);
+            double v1 = (p4.X - p3.X) * (p1.Y - p3.Y) - (p4.Y - p3.Y) * (p1.X - p3.X);
+            double v2 = (p4.X - p3.X) * (p2.Y - p3.Y) - (p4.Y - p3.Y) * (p2.X - p3.X);
+            double v3 = (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
+            double v4 = (p2.X - p1.X) * (p4.Y - p1.Y) - (p2.Y - p1.Y) * (p4.X - p1.X);
+
+            return v1 * v2 < 0 && v3 * v4 < 0;
+        }
+
+        // (-1,-1) if no intersection
+        private Point GetIntersect(Edge e1, Edge e2)
+        {
+            (var p1, var p2, var p3, var p4) = (e1.p1, e1.p2, e2.p1, e2.p2);
             double v1 = (p4.X - p3.X) * (p1.Y - p3.Y) - (p4.Y - p3.Y) * (p1.X - p3.X);
             double v2 = (p4.X - p3.X) * (p2.Y - p3.Y) - (p4.Y - p3.Y) * (p2.X - p3.X);
             double v3 = (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
@@ -336,7 +435,7 @@ namespace task4
             origin.Y = pictureBox1.Height / 2;
 
             RedrawScene();
-
+            ShowInfo();
             pictureBox1.Refresh();
 
         }
