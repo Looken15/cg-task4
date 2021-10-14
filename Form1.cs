@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Math;
 
 namespace task4
 {
@@ -20,6 +21,10 @@ namespace task4
 
         Edge prim_edge;
         int edge_c = 0;
+        bool need_second = false;
+        Edge second_edge;
+        int second_edge_c = 0;
+        Point intersect_point;
 
         Polygon prim_polygon;
         bool first_point = true;
@@ -49,9 +54,12 @@ namespace task4
             g.Clear(Color.White);
             pictureBox1.Image = bitmap;
             prim_edge = new Edge();
+            second_edge = new Edge();
+            intersect_point = new Point(-100, -100);
             prim_polygon = new Polygon();
             origin = new Point(pictureBox1.Width / 2, pictureBox1.Height / 2);
             g.FillEllipse(new SolidBrush(Color.Red), origin.X, origin.Y, 10, 10);
+            ShowInfo("Hello!");
         }
 
         private void RedrawScene()
@@ -61,7 +69,12 @@ namespace task4
 
             if (prim_edge != null && prim_edge.p1.X != -1)
             {
-                DrawEdge();
+                DrawPrimEdge();
+            }
+
+            if (second_edge != null && second_edge.p1.X != -1)
+            {
+                DrawSecondEdge();
             }
 
             if (!first_point || prim_polygon.done)
@@ -70,6 +83,8 @@ namespace task4
             }
 
             g.FillEllipse(new SolidBrush(Color.Red), origin.X, origin.Y, 10, 10);
+            if (prim_edge.p1.X != -1 && second_edge.p1.X != -1)
+                g.FillEllipse(new SolidBrush(Color.Pink), intersect_point.X-5,intersect_point.Y-5, 10, 10);
 
             pictureBox1.Refresh();
         }
@@ -80,25 +95,73 @@ namespace task4
             if (!point_button.Enabled)
             {
                 prim_point = me.Location;
+                if (prim_edge.p1.X > 0 && prim_edge.p2.X > 0)
+                    switch(point_position_to_edge(prim_point))
+                    {
+                        case 0: ShowInfo("Point on edge."); break;
+                        case -1: ShowInfo("Left to edge."); break;
+                        case 1: ShowInfo("Right to edge."); break;
+                    }
                 RedrawScene();
             }
             else if (!edge_button.Enabled)
             {
-                if (edge_c == 0)
+                intersect_point = new Point();
+                if (need_second)
                 {
-                    prim_edge.p1 = me.Location;
-                    edge_c++;
-                    prim_edge.p2 = new Point(-1, -1);
+                    if (second_edge_c == 0)
+                    {
+                        second_edge.p1 = me.Location;
+                        second_edge_c++;
+                        second_edge.p2 = new Point(-1, -1);
+                    }
+                    else
+                    {
+                        second_edge.p2 = me.Location;
+                        second_edge_c--;
+                    }
+
+                    if (second_edge.p1.X != -1 && second_edge.p2.X != -1)
+                    {
+                        var p = GetIntersect();
+                        if (p.X == -1)
+                            ShowInfo("No intersection.");
+                        else
+                        {
+                            intersect_point = p;
+                            ShowInfo($"X = {p.X}; Y = {p.Y};");
+                        }
+                        need_second = false;
+                        RedrawScene();
+                    }
                 }
                 else
                 {
-                    prim_edge.p2 = me.Location;
-                    edge_c--;
-                }
+                    if (edge_c == 0)
+                    {
+                        prim_edge.p1 = me.Location;
+                        edge_c++;
+                        prim_edge.p2 = new Point(-1, -1);
+                    }
+                    else
+                    {
+                        prim_edge.p2 = me.Location;
+                        edge_c--;
+                    }
 
-                if (prim_edge.p1.X != -1 && prim_edge.p2.X != -1)
-                {
-                    RedrawScene();
+                    if (prim_edge.p1.X != -1 && prim_edge.p2.X != -1)
+                    {
+                        var p = GetIntersect();
+                        if (p.X == -1)
+                            ShowInfo("No intersection.");
+                        else
+                        {
+                            intersect_point = p;
+                            ShowInfo($"X = {p.X}; Y = {p.Y};");
+                        }
+                        need_second = true;
+                        RedrawScene();
+                    }
                 }
             }
             else if (!polygon_button.Enabled)
@@ -134,7 +197,15 @@ namespace task4
             pictureBox1.Refresh();
         }
 
-        private void DrawEdge()
+        private void DrawSecondEdge()
+        {
+            g.FillEllipse(new SolidBrush(Color.Green), second_edge.p1.X-point_radius, second_edge.p1.Y - point_radius, 2 * point_radius, 2 * point_radius);
+            g.FillEllipse(new SolidBrush(Color.Green), second_edge.p2.X - point_radius, second_edge.p2.Y - point_radius, 2 * point_radius, 2 * point_radius);
+            g.DrawLine(new Pen(Color.Green, 3), second_edge.p1, second_edge.p2);
+            pictureBox1.Refresh();
+        }
+
+        private void DrawPrimEdge()
         {
             DrawPoint(prim_edge.p1.X, prim_edge.p1.Y, point_radius);
             DrawPoint(prim_edge.p2.X, prim_edge.p2.Y, point_radius);
@@ -166,10 +237,58 @@ namespace task4
             pictureBox1.Refresh();
         }
 
+        private void ShowInfo(string s = "")
+        {
+            info_textBox.Text = s;
+            info_textBox.Refresh();
+        }
 
         private bool LocatePoint(Point p)
         {
             return Math.Abs(p.X - prim_polygon.start.x) < locate_radius && Math.Abs(p.Y - prim_polygon.start.y) < locate_radius;
+        }
+
+        //-1 - left, 0 - on edge, 1 - right
+        private int point_position_to_edge(Point p)
+        {
+            var up = prim_edge.p1; var down = prim_edge.p2;
+            if (down.Y < up.Y || (down.Y == up.Y && down.X > up.X))
+                (up, down) = (down, up);
+
+            double yp = down.Y - p.Y; double yup = down.Y - up.Y;
+            double xp = p.X - down.X; double xup = up.X - down.X;
+            if (yp * xup - xp * yup > 0)
+                return -1;
+            if (yp * xup - xp * yup < 0)
+                return 1;
+            return 0;
+        }
+
+        // (-1,-1) if no intersection
+        private Point GetIntersect()
+        {
+            (var p1, var p2, var p3, var p4) = (prim_edge.p1, prim_edge.p2, second_edge.p1, second_edge.p2);
+            double v1 = (p4.X - p3.X) * (p1.Y - p3.Y) - (p4.Y - p3.Y) * (p1.X - p3.X);
+            double v2 = (p4.X - p3.X) * (p2.Y - p3.Y) - (p4.Y - p3.Y) * (p2.X - p3.X);
+            double v3 = (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
+            double v4 = (p2.X - p1.X) * (p4.Y - p1.Y) - (p2.Y - p1.Y) * (p4.X - p1.X);
+
+            if (v1 * v2 >= 0 || v3 * v4 >= 0)
+                return new Point(-1, -1);
+
+            double a1 = p2.Y - p1.Y;
+            double b1 = p1.X - p2.X;
+            double c1 = p1.X * (p1.Y - p2.Y) + p1.Y * (p2.X - p1.X);
+
+            double a2 = p4.Y - p3.Y;
+            double b2 = p3.X - p4.X;
+            double c2 = p3.X * (p3.Y - p4.Y) + p3.Y * (p4.X - p3.X);
+
+            double D = a1 * b2 - a2 * b1;
+            double Dx = c2*b1 - c1*b2;
+            double Dy = a2*c1 - a1*c2;
+
+            return new Point((int)(Dx / D), (int)(Dy / D));
         }
 
         private void point_button_Click(object sender, EventArgs e)
@@ -178,6 +297,7 @@ namespace task4
             edge_button.Enabled = true;
             polygon_button.Enabled = true;
             origin_button.Enabled = true;
+            need_second = false;
         }
         private void edge_button_Click(object sender, EventArgs e)
         {
@@ -185,6 +305,7 @@ namespace task4
             point_button.Enabled = true;
             polygon_button.Enabled = true;
             origin_button.Enabled = true;
+            need_second = false;
         }
 
         private void polygon_button_Click(object sender, EventArgs e)
@@ -193,14 +314,21 @@ namespace task4
             edge_button.Enabled = true;
             point_button.Enabled = true;
             origin_button.Enabled = true;
+            need_second = false;
         }
 
         private void clear_butt_Click(object sender, EventArgs e)
         {
             g.Clear(Color.White);
             prim_point = new Point();
+            intersect_point = new Point();
             prim_edge = new Edge();
             prim_polygon = new Polygon();
+            second_edge = new Edge();
+            second_edge_c = 0;
+            edge_c = 0;
+            need_second = false;
+            
 
             g.FillEllipse(new SolidBrush(Color.Red), origin.X, origin.Y, 10, 10);
 
@@ -218,6 +346,7 @@ namespace task4
             origin_button.Enabled = false;
             polygon_button.Enabled = true;
             edge_button.Enabled = true;
+            need_second = false;
             point_button.Enabled = true;
         }
 
@@ -362,8 +491,6 @@ namespace task4
         {
             double.TryParse(ky_scale_textbox.Text, out ky_scale);
         }
-
-
     }
 
     public class Edge

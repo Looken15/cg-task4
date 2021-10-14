@@ -49,6 +49,7 @@ namespace task4
             this.ky_scale_textbox = new System.Windows.Forms.TextBox();
             this.scale_button = new System.Windows.Forms.Button();
             this.edge_rotate_button = new System.Windows.Forms.Button();
+            this.info_textBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -103,7 +104,7 @@ namespace task4
             // 
             // origin_button
             // 
-            this.origin_button.Location = new System.Drawing.Point(944, 132);
+            this.origin_button.Location = new System.Drawing.Point(942, 135);
             this.origin_button.Name = "origin_button";
             this.origin_button.Size = new System.Drawing.Size(270, 23);
             this.origin_button.TabIndex = 5;
@@ -229,7 +230,7 @@ namespace task4
             // 
             // edge_rotate_button
             // 
-            this.edge_rotate_button.Location = new System.Drawing.Point(947, 455);
+            this.edge_rotate_button.Location = new System.Drawing.Point(947, 443);
             this.edge_rotate_button.Name = "edge_rotate_button";
             this.edge_rotate_button.Size = new System.Drawing.Size(123, 23);
             this.edge_rotate_button.TabIndex = 20;
@@ -237,11 +238,21 @@ namespace task4
             this.edge_rotate_button.UseVisualStyleBackColor = true;
             this.edge_rotate_button.Click += new System.EventHandler(this.edge_rotate_button_Click);
             // 
+            // info_textBox
+            // 
+            this.info_textBox.Location = new System.Drawing.Point(947, 472);
+            this.info_textBox.Multiline = true;
+            this.info_textBox.Name = "info_textBox";
+            this.info_textBox.ReadOnly = true;
+            this.info_textBox.Size = new System.Drawing.Size(267, 36);
+            this.info_textBox.TabIndex = 22;
+            // 
             // clear_button
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1226, 547);
+            this.Controls.Add(this.info_textBox);
             this.Controls.Add(this.edge_rotate_button);
             this.Controls.Add(this.scale_button);
             this.Controls.Add(this.ky_scale_textbox);
@@ -293,6 +304,7 @@ namespace task4
         private System.Windows.Forms.TextBox ky_scale_textbox;
         private System.Windows.Forms.Button scale_button;
         private System.Windows.Forms.Button edge_rotate_button;
+        private System.Windows.Forms.TextBox info_textBox;
     }
 }
 
