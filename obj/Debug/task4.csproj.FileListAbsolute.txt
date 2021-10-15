@@ -8,3 +8,13 @@ C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\obj\Debug\task4.csproj.CoreCo
 C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\obj\Debug\task4.exe
 C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\obj\Debug\task4.pdb
 C:\Users\Tema-\Desktop\Универ\4.1\КГ\task4\obj\Debug\task4.clear_button.resources
+C:\Users\barakuda\Source\Repos\cg-task4\bin\Debug\task4.exe.config
+C:\Users\barakuda\Source\Repos\cg-task4\bin\Debug\task4.exe
+C:\Users\barakuda\Source\Repos\cg-task4\bin\Debug\task4.pdb
+C:\Users\barakuda\Source\Repos\cg-task4\obj\Debug\task4.csproj.AssemblyReference.cache
+C:\Users\barakuda\Source\Repos\cg-task4\obj\Debug\task4.clear_button.resources
+C:\Users\barakuda\Source\Repos\cg-task4\obj\Debug\task4.Properties.Resources.resources
+C:\Users\barakuda\Source\Repos\cg-task4\obj\Debug\task4.csproj.GenerateResource.cache
+C:\Users\barakuda\Source\Repos\cg-task4\obj\Debug\task4.csproj.CoreCompileInputs.cache
+C:\Users\barakuda\Source\Repos\cg-task4\obj\Debug\task4.exe
+C:\Users\barakuda\Source\Repos\cg-task4\obj\Debug\task4.pdb
